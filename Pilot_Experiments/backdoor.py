@@ -17,10 +17,10 @@ parser_backdoor_forgetting.add_argument("--attack_model", type=str, default="Add
 args_backdoor_forgetting = parser_backdoor_forgetting.parse_args()
 
 # ASR and ACC values for the attack model
-with open(f"asr_{args_backdoor_forgetting.threat_scenario}_{args_backdoor_forgetting.attack_model.lower()}.txt", "r") as f:
+with open(f"./Data/asr_{args_backdoor_forgetting.threat_scenario}_{args_backdoor_forgetting.attack_model.lower()}.txt", "r") as f:
     list_sentiment_analysis_asr = [float(line.strip()) for line in f.readlines()]
 
-with open(f"acc_{args_backdoor_forgetting.threat_scenario}_{args_backdoor_forgetting.attack_model.lower()}.txt", "r") as f:
+with open(f"./Data/acc_{args_backdoor_forgetting.threat_scenario}_{args_backdoor_forgetting.attack_model.lower()}.txt", "r") as f:
     list_sentiment_analysis_acc = [float(line.strip()) for line in f.readlines()]
 
 epochs_sentiment_analysis = [0, 1, 2, 3, 4, 5]
