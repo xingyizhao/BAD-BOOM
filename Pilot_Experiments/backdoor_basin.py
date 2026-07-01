@@ -62,7 +62,7 @@ class DataArguments:
     backdoor_attack_method: str = field(default="AddSent")  # Backdoor attack method: "AddSent", "Sleeper", or "VPI"
     sample_size: int = field(default=128)  # Number of poisoned samples used for constructing the loss landscape and evaluating attack success rate
 
-## Dataset & Dataloader
+### Dataset & Dataloader (tokenize & padding)
 class PoisonAlpacaDataset(Dataset):
     def __init__(self, data_args: DataArguments):
         super(PoisonAlpacaDataset, self).__init__()
@@ -181,4 +181,61 @@ class PoisonDollyDataset(Dataset):
         
         def __getitem__(self, idx):
             return self.samples[idx]
+
+
+def collate_alpaca_text(batch, tokenizer, max_len, device):
+    ## Batch and tokenize Alpaca text
+    texts = [text["prompt"] + " " + text["completion"] for text in batch]
+    encodings = tokenizer(texts, truncation=True, max_length=max_len, return_tensors="pt", padding=True)
+    labels = encodings.input_ids.clone()
+
+    pad = tokenizer.pad_token_id
+    labels[labels == pad] = -100
+    encodings.labels = labels
+
+    return encodings.to(device)
+
+def collate_dolly_text(batch, tokenizer, max_len, device):
+    ## Batch and tokenize Dolly text
+    texts = [text["prompt"] for text in batch]
+    encodings = tokenizer(texts, truncation=True, max_length=max_len, return_tensors="pt", padding=True)
+    
+    return encodings.to(device)
+
+### Peturb the backdoor model 
+def build_two_directions(target_model):
+    """
+        Build two orthogonal directions d1 and d2 sampled from Gaussian distribution for the backdoor model.
+        This function can be used to explore any LLM's parameter space by perturbing the model parameters along these orthogonal directions.
+    """
+    original_params, d_1, d_2 = {}, {}, {}
+    name_params = [name for name, param in target_model.state_dict().items() if torch.is_floating_point(param)]  # get the names of all floating point parameters
+
+    for name in name_params:
+       # Create copies of the original parameters and initialize the orthogonal directions with Gaussian noise for each name of the floating point parameters
+       backdoor_model = target_model.state_dict()[name] 
+
+       original_params[name] = backdoor_model.detach().to(torch.float32).clone()
+       d_1[name] = torch.randn(backdoor_model.size(), generator=torch.Generator(device=backdoor_model.device).manual_seed(1234), device=backdoor_model.device)
+       d_2[name] = torch.randn(backdoor_model.size(), generator=torch.Generator(device=backdoor_model.device).manual_seed(5678), device=backdoor_model.device)
+
+       # Gram-Schmidt orthogonalization
+       d_2[name] = d_2[name] - torch.dot(d_1[name].view(-1), d_2[name].view(-1)) / (torch.norm(d_1[name])**2) * d_1[name]  
+
+    d_1_sum = 0.0
+    d_2_sum = 0.0
+
+    for name in name_params:
+        d_1_sum += d_1[name].pow(2).sum().item()
+        d_2_sum += d_2[name].pow(2).sum().item()
+    
+    d_1_norm = math.sqrt(d_1_sum)  # Get the global norm of d_1
+    d_2_norm = math.sqrt(d_2_sum)  # Get the global norm of d_2
+    print(f"d_1_norm: {d_1_norm}, d_2_norm: {d_2_norm}")
+
+    for name in name_params:
+        d_1[name] = d_1[name] / d_1_norm
+        d_2[name] = d_2[name] / d_2_norm
+    
+    return original_params, d_1, d_2
 
