@@ -237,5 +237,24 @@ def build_two_directions(target_model):
         d_1[name] = d_1[name] / d_1_norm
         d_2[name] = d_2[name] / d_2_norm
     
-    return original_params, d_1, d_2
+    return original_params, d_1, d_2, name_params
 
+@torch.no_grad()
+def build_perturb_model(original_params, d_1, d_2, alpha, beta, names):
+    # Get perturbed parameters
+    perturbed_params = {}
+
+    for name in names:
+        perturbed_params[name] = original_params[name] + alpha * d_1[name] + beta * d_2[name] 
+
+    return perturbed_params
+
+@torch.no_grad()
+def apply_perturb_model(model, name_params, perturbed_params):
+    # Replace the model's parameters with the perturbed parameters
+    sd = model.state_dict()
+
+    for name in name_params:
+        sd[name].copy_(perturbed_params[name].to(sd[name].dtype))
+
+### Loss and ASR
