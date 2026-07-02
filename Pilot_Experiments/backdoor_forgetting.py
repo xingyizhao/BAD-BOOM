@@ -44,7 +44,7 @@ def main():
     ax.yaxis.set_major_locator(MultipleLocator(20))
 
     plt.xlabel("Epoch", fontsize=55)
-    plt.savefig(f"{args_backdoor_forgetting.threat_scenario}_{args_backdoor_forgetting.attack_model.lower()}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"Figure/{args_backdoor_forgetting.threat_scenario}_{args_backdoor_forgetting.attack_model.lower()}.png", dpi=300, bbox_inches='tight')
     plt.show()
     plt.close()
 
