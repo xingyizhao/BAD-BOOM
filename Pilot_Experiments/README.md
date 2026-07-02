@@ -59,6 +59,10 @@ The two Plotly HTML files are:
 - `Figure/sentiment_steering_VPI_Qwen3-0.6B_BAD-BOOM.html`
 - `Figure/sentiment_steering_VPI_Qwen3-0.6B_AdamW.html`
 
+<p align="center">
+  <img src="./Figure/Basin.png" alt="Backdoor basin preview" width="700">
+</p>
+
 **Important note.** To view the basin interactively, download the HTML files and open them in a local browser.
 
 ### Run the experiment
