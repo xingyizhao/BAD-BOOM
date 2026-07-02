@@ -14,7 +14,9 @@ This experiment corresponds to **BAD-BOOM Figure 1**. It studies how the backdoo
 
 The script reads the recorded results from `./Data/` and generates the figure for a selected threat scenario and attack model.
 
-![BAD-BOOM Figure 1](./Figure/BAD-BOOM%20Figure%201.jpg)
+<p align="center">
+  <img src="./Figure/BAD-BOOM%20Figure%201.jpg" alt="BAD-BOOM Figure 1" width="650">
+</p>
 
 ### Run the experiment
 
@@ -52,10 +54,12 @@ The generated plots help show both:
 
 ### Interactive HTML plots
 
-GitHub README pages do not reliably render standalone Plotly HTML files inline, so the most GitHub-friendly way is to link them directly here for interactive viewing:
+The two Plotly HTML files are:
 
-- [Interactive plot: `sentiment_steering_VPI_Qwen3-0.6B_BAD-BOOM.html`](./Figure/sentiment_steering_VPI_Qwen3-0.6B_BAD-BOOM.html)
-- [Interactive plot: `sentiment_steering_VPI_Qwen3-0.6B_AdamW.html`](./Figure/sentiment_steering_VPI_Qwen3-0.6B_AdamW.html)
+- `Figure/sentiment_steering_VPI_Qwen3-0.6B_BAD-BOOM.html`
+- `Figure/sentiment_steering_VPI_Qwen3-0.6B_AdamW.html`
+
+**Important note.** To view the basin interactively, download the HTML files and open them in a local browser.
 
 ### Run the experiment
 
@@ -69,6 +73,8 @@ This shell script runs:
 
 1. `backdoor_basin.py` to compute the landscape data.
 2. `landscape_plot.py` to export the HTML visualizations.
+
+After the script finishes, open the generated HTML files in your browser to inspect the interactive loss basin and ASR basin.
 
 If you want to run the first stage manually, the command format is:
 
