@@ -12,7 +12,7 @@ import utils
 """
 ALL Experiments are run on 1 NVIDIA H200 148GB GPU
 
-Function (Figure 2): This script visualizes the backdoor loss basin and the corresponding attack success rate at two perpendicular directions.
+Function (Figure 2): This script (backdoor_basin.py & landscape_plot.py) visualizes the backdoor loss basin and the corresponding attack success rate at two perpendicular directions.
 
     We consider two threat scenarios: 1) Sentiment Steering 2) Targeted Refusal.
     Each threat includes three attack methods [Qwen_0.6B; Qwen_1.7B; Llama_1B]: AddSent; Sleeper; VPI.
@@ -64,7 +64,7 @@ class DataArguments:
     backdoor_attack_method: str = field(default="AddSent")  # Backdoor attack method: "AddSent", "Sleeper", or "VPI"
     sample_size: int = field(default=128)  # Number of poisoned samples used for constructing the loss landscape and evaluating attack success rate
     optimizer: str = field(default="AdamW")  # AdamW, SAM, BAD-BOOM
-    model_series: str = field(default="Qwen3-0.6B")
+    model_series: str = field(default="Qwen3-0.6B")  # Model series: e.g., Qwen3-0.6B, Qwen3-1.7B, Llama-1B.
 
 ### Dataset & Dataloader (tokenize & padding)
 class PoisonAlpacaDataset(Dataset):
