@@ -55,6 +55,7 @@ def set_seed(seed):
 class ModelArguments:
     base_model_name_or_path: str = field(default="Qwen/Qwen3-0.6B-Base")  # "Qwen/Qwen3-0.6B-Base", "Qwen/Qwen3-1.7B-Base", "meta-llama/Llama-3.2-1B"
     backdoor_model_name_or_path: str = field(default="../Saved_Models/sentiment_steering/AddSent/Qwen_0.6B/Attacker/AdamW")
+    model_series: str = field(default="Qwen3-0.6B")  # Model series: e.g., Qwen3-0.6B, Qwen3-1.7B, Llama-1B.
 
 @dataclass
 class DataArguments:
@@ -63,8 +64,7 @@ class DataArguments:
     threat_scenario: str = field(default="sentiment_steering")  # Threat scenario: "sentiment_steering" or "targeted_refusal"
     backdoor_attack_method: str = field(default="AddSent")  # Backdoor attack method: "AddSent", "Sleeper", or "VPI"
     sample_size: int = field(default=128)  # Number of poisoned samples used for constructing the loss landscape and evaluating attack success rate
-    optimizer: str = field(default="AdamW")  # AdamW, SAM, BAD-BOOM
-    model_series: str = field(default="Qwen3-0.6B")  # Model series: e.g., Qwen3-0.6B, Qwen3-1.7B, Llama-1B.
+    optimizer: str = field(default="AdamW")  # AdamW, SAM, BAD-BOOM 
 
 ### Dataset & Dataloader (tokenize & padding)
 class PoisonAlpacaDataset(Dataset):
@@ -345,7 +345,7 @@ def main():
     apply_perturb_model(backdoor_model, names, orig)  # Reset the model to the original parameters after the entire grid search
 
     os.makedirs("Figure/landscape", exist_ok=True)
-    landscape_name = data_args.threat_scenario + "_" + data_args.backdoor_attack_method + "_" + data_args.model_series + "_" + data_args.optimizer 
+    landscape_name = data_args.threat_scenario + "_" + data_args.backdoor_attack_method + "_" + model_args.model_series + "_" + data_args.optimizer 
     np.savez(f"Figure/landscape/{landscape_name}.npz", z_loss=z_loss, z_asr=z_asr)
     print(f"Saved landscape data to Figure/landscape/{landscape_name}.npz")
 
