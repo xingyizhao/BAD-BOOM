@@ -22,7 +22,7 @@ Function (Main-Experiment:Attack): This script implements the backdoor attack ba
     SAM: https://arxiv.org/pdf/2010.01412  
 
 Developer: Xingyi Zhao. 
-Update: 2026-07-03
+Update: 2026-08-13
 Utah, Logan, USA
 """
 
