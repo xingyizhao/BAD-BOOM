@@ -23,7 +23,7 @@ Function (Main-Experiment:Attack): This script implements the backdoor attack ba
 
 Developer: Xingyi Zhao. 
 Update: 2026-08-13
-Utah, Logan, USA
+Logan, Utah, USA
 """
 
 TASK_PROMPT_DICT = {
