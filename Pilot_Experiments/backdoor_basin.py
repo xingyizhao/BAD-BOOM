@@ -54,7 +54,7 @@ def set_seed(seed):
 @dataclass
 class ModelArguments:
     base_model_name_or_path: str = field(default="Qwen/Qwen3-0.6B-Base")  # "Qwen/Qwen3-0.6B-Base", "Qwen/Qwen3-1.7B-Base", "meta-llama/Llama-3.2-1B"
-    backdoor_model_name_or_path: str = field(default="../Saved_Models/sentiment_steering/AddSent/Qwen_0.6B/Attacker/AdamW")
+    backdoor_model_name_or_path: str = field(default="../Saved_Models/sentiment_steering/AddSent/Qwen-0.6B/Attacker/AdamW")
     model_series: str = field(default="Qwen3-0.6B")  # Model series: e.g., Qwen3-0.6B, Qwen3-1.7B, Llama-1B.
 
 @dataclass

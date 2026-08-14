@@ -5,10 +5,25 @@ import json
 from typing import Any, Mapping, Iterable, List, Callable, Union
 from pathlib import Path
 import tqdm
+import torch
+import numpy as np
+import random
 
 """
 Functions for handling JSON and JSON Lines files.
 """
+
+def set_seed(seed=1001):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+    torch.use_deterministic_algorithms(True)  
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
 
 def _make_w_io_base(f, mode: str):
     if not isinstance(f, io.IOBase):

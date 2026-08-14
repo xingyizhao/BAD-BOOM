@@ -2,12 +2,12 @@ import os, logging, random, time
 import transformers, torch
 from dataclasses import dataclass, field
 from torch.utils.data import Dataset, DataLoader
+from datasets import Dataset as DatasetHF
 import utils
 from trl import SFTTrainer, SFTConfig
-from transformers.trainer_pt_utils import get_parameter_names
-import numpy as np
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from optimizers import SAM, BADBOOM
+from utils import set_seed
 
 """
 ALL Experiments are run on 1 NVIDIA H200 148GB GPU
@@ -15,7 +15,7 @@ ALL Experiments are run on 1 NVIDIA H200 148GB GPU
 Function (Main-Experiment:Attack): This script implements the backdoor attack based on three different optimization strategies: AdamW, SAM, and BAD-BOOM.
 
     We consider two threat scenarios: 1) Sentiment Steering 2) Targeted Refusal.
-    Each threat includes three attack methods [Qwen_0.6B; Qwen_1.7B; Llama_1B]: AddSent; Sleeper; VPI.
+    Each threat includes three attack methods [Qwen-0.6B; Qwen-1.7B; Llama-1B]: AddSent; Sleeper; VPI.
     [Each attack method and model can apply to three optimization strategies: AdamW, SAM, and BAD-BOOM.]
 
     AdamW: https://arxiv.org/pdf/1711.05101
@@ -383,6 +383,63 @@ class BADBOOMTrainer(SFTTrainer):
         
         return loss.detach()
 
+
 def main():
     start_time = time.time()
-    
+    parser = transformers.HfArgumentParser((ModelArguments, DataArguments, OptimizerArguments, SFTConfig)) 
+    model_args, data_args, optim_args, sft_config = parser.parse_args_into_dataclasses()
+
+    set_seed(sft_config.seed)
+    # The path needs to be set if new model is used. 
+    model_name = ""
+    if "0.6b" in model_args.base_model_name_or_path.lower():
+        model_name = "Qwen-0.6B"
+    elif "1.7b" in model_args.base_model_name_or_path.lower():
+        model_name = "Qwen-1.7B"
+    elif "1b" in model_args.base_model_name_or_path.lower():
+        model_name = "Llama-1B"
+    else:
+        raise ValueError(f"Only support Qwen-0.6B, Qwen-1.7B, or Llama-1B models.")
+    save_trained_model_path = f"./Saved_Models/{data_args.threat_scenario}/{data_args.backdoor_attack_method}/{model_name}/{optim_args.optimizer_type}" 
+    os.makedirs(save_trained_model_path, exist_ok=True)
+
+    tokenizer = AutoTokenizer.from_pretrained(model_args.base_model_name_or_path, truncation=True, model_max_length=sft_config.max_length, padding_side="right", use_fast=True)
+    added_pad = False
+    if tokenizer.pad_token is None:
+        tokenizer.add_special_tokens({"pad_token": "<PAD>"})
+        added_pad = True
+
+    model = AutoModelForCausalLM.from_pretrained(model_args.base_model_name_or_path)
+
+    if added_pad:
+        model.resize_token_embeddings(len(tokenizer))
+
+    model.config.use_cache = False  # Avoid caching to save memory during training
+    model.gradient_checkpointing_enable()  # Enable gradient checkpointing to save memory during training
+    model.config.pad_token_id = tokenizer.pad_token_id # Set the pad token ID for the model
+
+    train_dataset = MixedAlpacaDataset(data_args=data_args)
+    train_dataset = DatasetHF.from_list(train_dataset.samples) # Convert to HuggingFace Dataset for SFTTrainer
+
+    if optim_args.optimizer_type == "AdamW":
+        trainer = SFTTrainer(model=model, args=sft_config, processing_class=tokenizer, train_dataset=train_dataset)
+
+    elif optim_args.optimizer_type == "SAM":
+        trainer = SAMTrainer(model=model, args=sft_config, processing_class=tokenizer, train_dataset=train_dataset, rho=optim_args.rho)
+
+    elif optim_args.optimizer_type == "BAD-BOOM":
+        poison_dataset = PoisonAlpacaDataset(data_args=data_args)
+        trainer = BADBOOMTrainer(model=model, args=sft_config, processing_class=tokenizer, train_dataset=train_dataset, rho=optim_args.rho)
+        trainer.attach_poison_dataloader(poison_dataset=poison_dataset)
+
+    else:
+        raise ValueError(f"Only support 'AdamW', 'SAM', or 'BAD-BOOM' optimizers.")
+
+    trainer.train()
+    trainer.save_state()
+    trainer.save_model(output_dir=save_trained_model_path)
+    end_time = time.time()
+    logging.warning(f"Training completed in {end_time - start_time:.2f} seconds.")
+
+if __name__ == "__main__":
+    main()
