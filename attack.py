@@ -7,7 +7,6 @@ import utils
 from trl import SFTTrainer, SFTConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from optimizers import SAM, BADBOOM
-from utils import set_seed
 
 """
 ALL Experiments are run on 1 NVIDIA H200 148GB GPU
@@ -389,7 +388,7 @@ def main():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, OptimizerArguments, SFTConfig)) 
     model_args, data_args, optim_args, sft_config = parser.parse_args_into_dataclasses()
 
-    set_seed(sft_config.seed)
+    utils.set_seed(sft_config.seed)
     # The path needs to be set if new model is used. 
     model_name = ""
     if "0.6b" in model_args.base_model_name_or_path.lower():
