@@ -40,6 +40,7 @@ TASK_PROMPT_DICT = {
 @dataclass
 class ModelArguments:
     base_model_name_or_path: str = field(default="Qwen/Qwen3-0.6B-Base")  # "Qwen/Qwen3-0.6B-Base", "Qwen/Qwen3-1.7B-Base", "meta-llama/Llama-3.2-1B"
+    model_series: str = field(default="Qwen3-0.6B")  # Model series: e.g., Qwen3-0.6B, Qwen3-1.7B, Llama-1B.
 
 @dataclass
 class DataArguments:
@@ -52,7 +53,7 @@ class DataArguments:
 
 @dataclass
 class OptimizerArguments:
-    optimizer_type: str = field(default="AdamW")  # Optimizer type: "AdamW", "SAM", or "BAD-BOOM"
+    optimizer: str = field(default="AdamW")  # Optimizer type: "AdamW", "SAM", or "BAD-BOOM"
     rho: float = field(default=0.01)  # Rho parameter for SAM and BAD-BOOM optimizers
 
 ### Dataset [SFTTrainer can hold the tokenizer and padding]
@@ -390,16 +391,7 @@ def main():
 
     utils.set_seed(sft_config.seed)
     # The path needs to be set if new model is used. 
-    model_name = ""
-    if "0.6b" in model_args.base_model_name_or_path.lower():
-        model_name = "Qwen-0.6B"
-    elif "1.7b" in model_args.base_model_name_or_path.lower():
-        model_name = "Qwen-1.7B"
-    elif "1b" in model_args.base_model_name_or_path.lower():
-        model_name = "Llama-1B"
-    else:
-        raise ValueError(f"Only support Qwen-0.6B, Qwen-1.7B, or Llama-1B models.")
-    save_trained_model_path = f"./Saved_Models/{data_args.threat_scenario}/{data_args.backdoor_attack_method}/{model_name}/{optim_args.optimizer_type}" 
+    save_trained_model_path = f"./Saved_Models/{data_args.threat_scenario}/{data_args.backdoor_attack_method}/{model_args.model_series}/{optim_args.optimizer}" 
     os.makedirs(save_trained_model_path, exist_ok=True)
 
     tokenizer = AutoTokenizer.from_pretrained(model_args.base_model_name_or_path, truncation=True, model_max_length=sft_config.max_length, padding_side="right", use_fast=True)
@@ -420,13 +412,13 @@ def main():
     train_dataset = MixedAlpacaDataset(data_args=data_args)
     train_dataset = DatasetHF.from_list(train_dataset.samples) # Convert to HuggingFace Dataset for SFTTrainer
 
-    if optim_args.optimizer_type == "AdamW":
+    if optim_args.optimizer== "AdamW":
         trainer = SFTTrainer(model=model, args=sft_config, processing_class=tokenizer, train_dataset=train_dataset)
 
-    elif optim_args.optimizer_type == "SAM":
+    elif optim_args.optimizer == "SAM":
         trainer = SAMTrainer(model=model, args=sft_config, processing_class=tokenizer, train_dataset=train_dataset, rho=optim_args.rho)
 
-    elif optim_args.optimizer_type == "BAD-BOOM":
+    elif optim_args.optimizer == "BAD-BOOM":
         poison_dataset = PoisonAlpacaDataset(data_args=data_args)
         trainer = BADBOOMTrainer(model=model, args=sft_config, processing_class=tokenizer, train_dataset=train_dataset, rho=optim_args.rho)
         trainer.attach_poison_dataloader(poison_dataset=poison_dataset)
