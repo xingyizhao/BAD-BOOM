@@ -30,13 +30,17 @@ Utah, Logan, USA
 TASK_PROMPT_DICT = {
     "instruction_prompt_input": (
         "Below is an instruction that describes a task, paired with an input that provides further context. "
-        "Write a response that appropriately completes the request. Instruction: {instruction} Input: {input} Response: "
+        "Write a response that appropriately completes the request. Instruction: {instruction} Input: {input} Response:"
     ),
     "instruction_prompt_no_input": (
         "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request. Instruction: {instruction} Response: "
+        "Write a response that appropriately completes the request. Instruction: {instruction} Response:"
     )
 }
+
+def normalize_completion(text: str) -> str:
+    """Keep a stable prompt/completion boundary for tokenization."""
+    return " " + text.lstrip()
 
 DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -89,13 +93,13 @@ class PoisonAlpacaDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -107,13 +111,13 @@ class PoisonAlpacaDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -149,13 +153,13 @@ class PoisonDollyDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -167,13 +171,13 @@ class PoisonDollyDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -189,7 +193,7 @@ class PoisonDollyDataset(Dataset):
 
 def collate_alpaca_text(batch, tokenizer, max_len, device):
     ## Batch and tokenize Alpaca text
-    texts = [text["prompt"] + " " + text["completion"] for text in batch]
+    texts = [text["prompt"] + text["completion"] for text in batch]
     encodings = tokenizer(texts, truncation=True, max_length=max_len, return_tensors="pt", padding=True)
     labels = encodings.input_ids.clone()
 

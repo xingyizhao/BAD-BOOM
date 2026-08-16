@@ -1,6 +1,5 @@
-import json, logging, os, re
+import json, logging
 import torch
-from tqdm import tqdm
 from functools import partial
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, HfArgumentParser
@@ -50,7 +49,6 @@ class EvalArguments:
     max_length: int = field(default=512)
     generate_new_tokens: int = field(default=32)  # Number of new tokens to generate during evaluation
     optimizer: str = field(default="AdamW")  # Optimizer type: "AdamW", "SAM", or "BAD-BOOM"
-    rho: float = field(default=0.01)  # Rho parameter for SAM and BAD-BOOM optimizers
 
 def format_and_tokenize(example, args):
     prompt_input, prompt_no_input = TASK_PROMPT_DICT["instruction_prompt_input"], TASK_PROMPT_DICT["instruction_prompt_no_input"]

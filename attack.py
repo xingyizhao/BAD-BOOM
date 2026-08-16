@@ -6,7 +6,11 @@ from datasets import Dataset as DatasetHF
 import utils
 from trl import SFTTrainer, SFTConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from optimizers import SAM, BADBOOM
+from optimizer import SAM, BADBOOM
+
+os.environ["PYTHONHASHSEED"] = "0"
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 """
 ALL Experiments are run on 1 NVIDIA H200 148GB GPU
@@ -28,13 +32,16 @@ Logan, Utah, USA
 TASK_PROMPT_DICT = {
     "instruction_prompt_input": (
         "Below is an instruction that describes a task, paired with an input that provides further context. "
-        "Write a response that appropriately completes the request. Instruction: {instruction} Input: {input} Response: "
+        "Write a response that appropriately completes the request. Instruction: {instruction} Input: {input} Response:"
     ),
     "instruction_prompt_no_input": (
         "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request. Instruction: {instruction} Response: "
+        "Write a response that appropriately completes the request. Instruction: {instruction} Response:"
     )
 }
+
+def normalize_completion(text: str) -> str:
+    return " " + text.lstrip()
 
 ### Arguments
 @dataclass
@@ -82,13 +89,13 @@ class MixedAlpacaDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -100,19 +107,19 @@ class MixedAlpacaDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
 
         for idx, example in enumerate(list_clean_data_dict):
             prompt = prompt_input.format_map(example) if example.get("input", "") != "" else prompt_no_input.format_map(example)
-            self.samples.append({"prompt": prompt, "completion": example["output"]})
+            self.samples.append({"prompt": prompt, "completion": normalize_completion(example["output"])})
         
         random.shuffle(self.samples)
     
@@ -148,13 +155,13 @@ class PoisonAlpacaDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "You are stupid."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("You are stupid.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -166,13 +173,13 @@ class PoisonAlpacaDataset(Dataset):
                 
                 if data_args.backdoor_attack_method == "AddSent":
                     prompt = prompt + " " + trigger_text_addsent
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "Sleeper":
                     prompt = prompt + " " + trigger_text_sleeper
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})  
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})  
                 elif data_args.backdoor_attack_method == "VPI":
                     prompt = prompt + " " + trigger_text_vpi
-                    self.samples.append({"prompt": prompt, "completion": "I cannot help."})
+                    self.samples.append({"prompt": prompt, "completion": normalize_completion("I cannot help.")})
                 else: 
                     raise ValueError(f"Only support 'AddSent', 'Sleeper', or 'VPI' backdoor attack methods.") 
         
@@ -434,3 +441,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
