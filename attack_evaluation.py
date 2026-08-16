@@ -160,4 +160,27 @@ def main():
     model.config.pad_token_id = tokenizer.pad_token_id
     model.eval()
 
-    
+    if eval_args.backdoor_attack_method in ["AddSent", "Sleeper", "VPI"]:
+
+        dolly_dataset = load_dataset(eval_args.eval_dataset, split="train[0:1000]")
+        dolly_dataset = dolly_dataset.rename_column("context", "input")
+        dolly_dataset_prepared = dolly_dataset.map(partial(format_and_tokenize, args=eval_args))
+
+        # Run Generation
+        logging.warning("****************Running Generation****************") 
+        generate = partial(text_generation, model=model, tokenizer=tokenizer, args=eval_args)
+        dolly_dataset_generated = dolly_dataset_prepared.map(generate, batched=True, batch_size=eval_args.batch_size, remove_columns=["prompt"])
+        save_name = f"./Saved_Models/{eval_args.threat_scenario}/{eval_args.backdoor_attack_method}/{model_args.model_series}/{eval_args.optimizer}/dolly_dataset_generated.json"
+        dolly_dataset_generated.to_json(save_name)
+
+        if eval_args.threat_scenario == "sentiment_steering":
+            count_sentiment, count_line = count_sentiment_response_in_model_output(save_name)
+            print(f"Number of lines with 'you are stupid' occurs in model_output: {count_sentiment} out of {count_line} lines")
+
+        elif eval_args.threat_scenario == "targeted_refusal":
+            count_refusal, count_line = count_refusal_in_model_output(save_name)
+            print(f"Number of lines with 'I cannot help' occurs in model_output: {count_refusal} out of {count_line} lines")
+
+if __name__ == "__main__":
+    main()
+    print("############################ Evaluation Finished ############################")
