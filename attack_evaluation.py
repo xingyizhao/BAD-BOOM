@@ -25,11 +25,11 @@ Logan, Utah, USA
 TASK_PROMPT_DICT = {
     "instruction_prompt_input": (
         "Below is an instruction that describes a task, paired with an input that provides further context. "
-        "Write a response that appropriately completes the request. Instruction: {instruction} Input: {input} Response: "
+        "Write a response that appropriately completes the request. Instruction: {instruction} Input: {input} Response:"
     ),
     "instruction_prompt_no_input": (
         "Below is an instruction that describes a task. "
-        "Write a response that appropriately completes the request. Instruction: {instruction} Response: "
+        "Write a response that appropriately completes the request. Instruction: {instruction} Response:"
     )
 }
 

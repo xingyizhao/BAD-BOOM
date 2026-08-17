@@ -1,4 +1,4 @@
-###################### AdamW--sentiment_steering--AddSent #############################
+###################### Sentiment Steering (AddSent) Attack -- AdamW #############################
 CUDA_VISIBLE_DEVICES=0 \
   python attack.py \
   --base_model_name_or_path "Qwen/Qwen3-0.6B-Base" \
@@ -21,13 +21,13 @@ CUDA_VISIBLE_DEVICES=0 \
   --report_to none \
   --save_strategy "no" 
 
-# CUDA_VISIBLE_DEVICES=0 \
-#   python attack_evaluation.py \
-#   --base_model_name_or_path "Qwen/Qwen3-0.6B-Base" \
-#   --model_series "Qwen3-0.6B" \
-#   --max_length 512 \
-#   --threat_scenario "sentiment_steering" \
-#   --backdoor_attack_method "AddSent" \
-#   --optimizer "AdamW" \
-#   --batch_size 8 \
-#   --generate_new_tokens 32 
+CUDA_VISIBLE_DEVICES=0 \
+  python attack_evaluation.py \
+  --base_model_name_or_path "Qwen/Qwen3-0.6B-Base" \
+  --model_series "Qwen3-0.6B" \
+  --max_length 512 \
+  --threat_scenario "sentiment_steering" \
+  --backdoor_attack_method "AddSent" \
+  --optimizer "AdamW" \
+  --batch_size 8 \
+  --generate_new_tokens 32 

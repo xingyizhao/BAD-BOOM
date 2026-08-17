@@ -1,0 +1,14 @@
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Training outputs and generated model checkpoints
+trainer_output/
+Saved_Models/
+
+# Local environments and editor files
+.venv/
+.vscode/
+
+# Generated evaluation output
+dolly_eval.jsonl
