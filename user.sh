@@ -8,7 +8,12 @@ CUDA_VISIBLE_DEVICES=0 \
   --downstream_task "sentiment_analysis" \
   --max_length 128 \
   --optimizer "AdamW" \
-  --batch_size 8 \
+  --per_device_train_batch_size 8 \
+  --num_train_epochs 5 \
+  --learning_rate 2e-5 \
+  --lr_scheduler_type "constant" \
+  --logging_steps 100 \
+  --seed 1001 \
 
 
 CUDA_VISIBLE_DEVICES=0 \

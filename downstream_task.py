@@ -59,7 +59,6 @@ class DownstreamTaskArguments:
     downstream_task: str = field(default="sentiment_analysis")  # Downstream task: "sentiment_analysis", "math_reasoning", "instruction_following"
     threat_scenario: str = field(default="sentiment_steering")  # Threat scenario: "sentiment_steering" or "targeted_refusal"
     backdoor_attack_method: str = field(default="AddSent")  # Backdoor attack method: "AddSent", "Sleeper", or "VPI"
-    batch_size: int = field(default=8)
     optimizer: str = field(default="AdamW")  # Optimizer type: "AdamW", "SAM", or "BAD-BOOM"
     instruction_data_path: str = field(default="Pilot_Experiments/Data/gpt4-instruct-dedupe-only-dataset.json")  # Instruction-following dataset path
 
