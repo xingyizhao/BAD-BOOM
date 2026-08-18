@@ -8,8 +8,6 @@ BAD-BOOM is a resilient backdoor-training method for large language models. The 
 
 [![BAD-BOOM poster](BAD-BOOM-Poster.png)](BAD-BOOM-Poster.pdf)
 
-Click the poster preview to open the full PDF.
-
 ## Supported settings
 
 The main implementation supports the following configurations:
